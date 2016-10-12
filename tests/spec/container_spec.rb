@@ -38,10 +38,8 @@ describe "Container" do
       @container = Docker::Container.create(
           'Image' => @image.id,
           'HostConfig' => {
-            'PortBindings' => {
-              "#{HTTP_PORT}/tcp" => [{ 'HostPort' => "#{HTTP_PORT}" }],
-              "#{HTTPS_PORT}/tcp" => [{ 'HostPort' => "#{HTTPS_PORT}" }]
-            }
+            'NetworkMode' => "container:" + ENV['CONTNAME'],
+            'Hostname' => 'localhost'
           }
       )
       @container.start
@@ -58,11 +56,11 @@ describe "Container" do
     end
 
     it "allow connections to port #{HTTP_PORT}" do
-      expect(is_port_open('127.0.0.1', "#{HTTP_PORT}")).to be true
+      expect(is_port_open(Socket.ip_address_list[0].ip_address, "#{HTTP_PORT}")).to be true
     end
 
-    it "allow connections to port #{HTTPS_PORT}" do
-      expect(is_port_open('127.0.0.1', "#{HTTPS_PORT}")).to be true
+    it "should not allow connections to port #{HTTPS_PORT} by default" do
+      expect(is_port_open('127.0.0.1', "#{HTTPS_PORT}")).to be false
     end
 
     after(:all) do

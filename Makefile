@@ -11,9 +11,13 @@ push-docker: build
 pull-docker:
 	docker pull $(DOCKER_IMAGE):latest
 
-test:
+lint:
 	@echo "linting the Dockerfile"
 	@docker run --rm -i fourstacks/hadolint hadolint --ignore DL3008 --ignore DL3013 - < Dockerfile
-	@echo "running serverspec tests on the Dockerfile"
+
+remove-local-testdocker:
 	-@docker rm -f testdocker
+
+test: lint remove-local-testdocker
+	@echo "running serverspec tests on the Dockerfile"
 	@docker run -it -e "CONTNAME=testdocker" --name testdocker -v "/var/run/docker.sock:/var/run/docker.sock" -v "$(PWD):/projectfiles" fourstacks/serverspec
